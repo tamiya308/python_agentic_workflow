@@ -22,11 +22,13 @@ CREATE TABLE IF NOT EXISTS students (
     last_name     TEXT NOT NULL,
     email         TEXT NOT NULL UNIQUE,
     date_of_birth TEXT,
-    grade         INTEGER
+    grade         INTEGER,
+    course_name   TEXT
 )
 """
 
-COLUMNS = ("first_name", "last_name", "email", "date_of_birth", "grade")
+COLUMNS = ("first_name", "last_name", "email", "date_of_birth", "grade", "course_name")
+PLACEHOLDERS = ", ".join("?" for _ in COLUMNS)
 
 
 class StudentIn(BaseModel):
@@ -35,6 +37,7 @@ class StudentIn(BaseModel):
     email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     date_of_birth: date | None = None
     grade: int | None = Field(default=None, ge=0)
+    course_name: str | None = None
 
 
 class Student(StudentIn):
@@ -57,6 +60,10 @@ def init_db() -> None:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with connect() as conn:
         conn.execute(SCHEMA)
+        # Databases created before course_name existed need the column added.
+        existing = {row["name"] for row in conn.execute("PRAGMA table_info(students)")}
+        if "course_name" not in existing:
+            conn.execute("ALTER TABLE students ADD COLUMN course_name TEXT")
 
 
 def row_to_student(row: sqlite3.Row) -> Student:
@@ -73,7 +80,9 @@ def to_params(student: StudentIn) -> tuple:
 def fetch_student(conn: sqlite3.Connection, student_id: int) -> Student:
     row = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
     if row is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Student {student_id} not found")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, f"Student {student_id} not found"
+        )
     return row_to_student(row)
 
 
@@ -104,12 +113,14 @@ def post_student(student: StudentIn):
     try:
         with connect() as conn:
             cur = conn.execute(
-                f"INSERT INTO students ({', '.join(COLUMNS)}) VALUES (?, ?, ?, ?, ?)",
+                f"INSERT INTO students ({', '.join(COLUMNS)}) VALUES ({PLACEHOLDERS})",
                 to_params(student),
             )
             return fetch_student(conn, cur.lastrowid)
     except sqlite3.IntegrityError:
-        raise HTTPException(status.HTTP_409_CONFLICT, f"Email {student.email} already exists")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Email {student.email} already exists"
+        )
 
 
 @app.put("/students/{student_id}", response_model=Student)
@@ -123,4 +134,6 @@ def put_student(student_id: int, student: StudentIn):
             )
             return fetch_student(conn, student_id)
     except sqlite3.IntegrityError:
-        raise HTTPException(status.HTTP_409_CONFLICT, f"Email {student.email} already exists")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Email {student.email} already exists"
+        )
