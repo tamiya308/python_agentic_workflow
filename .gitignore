@@ -1,0 +1,8 @@
+.venv/
+data/*.db
+.env
+.tmp/
+__pycache__/
+*.egg-info/
+credentials.json
+token.json

@@ -1,0 +1,17 @@
+[project]
+name = "python-agentic-workflow"
+version = "0.1.0"
+description = "WAT framework project: student records API (FastAPI + SQLite)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Install dependencies only; tools/ scripts are run in place, not packaged.
+packages = []

@@ -95,6 +95,8 @@ ALLOWED directories (you may read, write, and list):
 - `config/` (if present)
 - `.tmp/` (for generated data only)
 - `out/` (for final outputs)
+- `data/` (SQLite database for the student records API)
+- `.venv/` (project-local virtualenv; install packages here only)
 - Root-level files only: `.env`, `pyproject.toml`, `.gitignore`, `CLAUDE.md`
 
 FORBIDDEN directories (you MUST NOT read, list, open, or access in any way):
