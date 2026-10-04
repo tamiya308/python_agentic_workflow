@@ -90,6 +90,8 @@ Stay pragmatic. Stay reliable. Keep learning.
 ## Context Boundaries (STRICT)
 
 ALLOWED directories (you may read, write, and list):
+- `src/*`
+- `tests/`
 - `tools/`
 - `workflows/`
 - `config/` (if present)
