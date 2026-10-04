@@ -10,8 +10,9 @@ import sqlite3
 import pytest
 from fastapi.testclient import TestClient
 
-import tools.seed_students as seed
-import tools.student_api as api
+import src.api.student_api as api
+import src.migrations.seed_students as seed
+from src.main import app
 
 ADA = {
     "first_name": "Ada",
@@ -32,7 +33,7 @@ def temp_db(tmp_path, monkeypatch):
 
 @pytest.fixture
 def client():
-    with TestClient(api.app) as c:  # the context manager runs the lifespan (init_db)
+    with TestClient(app) as c:  # the context manager runs the lifespan (init_db)
         yield c
 
 

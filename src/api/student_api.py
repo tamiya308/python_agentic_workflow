@@ -1,19 +1,14 @@
-"""Student records API: FastAPI + SQLite.
-
-Run from the project root:
-    .\\.venv\\Scripts\\python -m uvicorn tools.student_api:app --reload
-Interactive docs: http://127.0.0.1:8000/docs
-"""
+"""Student endpoints and SQLite storage. Routed from src/main.py under /students."""
 
 import sqlite3
-from contextlib import asynccontextmanager, contextmanager
-from datetime import date
+from contextlib import contextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, status
 
-DB_PATH = Path(__file__).resolve().parents[1] / "data" / "students.db"
+from src.models import Student, StudentIn
+
+DB_PATH = Path(__file__).resolve().parents[2] / "data" / "students.db"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
@@ -29,19 +24,6 @@ CREATE TABLE IF NOT EXISTS students (
 
 COLUMNS = ("first_name", "last_name", "email", "date_of_birth", "grade", "course_name")
 PLACEHOLDERS = ", ".join("?" for _ in COLUMNS)
-
-
-class StudentIn(BaseModel):
-    first_name: str = Field(min_length=1)
-    last_name: str = Field(min_length=1)
-    email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-    date_of_birth: date | None = None
-    grade: int | None = Field(default=None, ge=0)
-    course_name: str | None = None
-
-
-class Student(StudentIn):
-    id: int
 
 
 @contextmanager
@@ -86,29 +68,23 @@ def fetch_student(conn: sqlite3.Connection, student_id: int) -> Student:
     return row_to_student(row)
 
 
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    init_db()
-    yield
+router = APIRouter(prefix="/students", tags=["students"])
 
 
-app = FastAPI(title="Student Records API", lifespan=lifespan)
-
-
-@app.get("/students", response_model=list[Student])
+@router.get("", response_model=list[Student])
 def get_all_students():
     with connect() as conn:
         rows = conn.execute("SELECT * FROM students ORDER BY id").fetchall()
     return [row_to_student(r) for r in rows]
 
 
-@app.get("/students/{student_id}", response_model=Student)
+@router.get("/{student_id}", response_model=Student)
 def get_student(student_id: int):
     with connect() as conn:
         return fetch_student(conn, student_id)
 
 
-@app.post("/students", response_model=Student, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Student, status_code=status.HTTP_201_CREATED)
 def post_student(student: StudentIn):
     try:
         with connect() as conn:
@@ -123,7 +99,7 @@ def post_student(student: StudentIn):
         )
 
 
-@app.put("/students/{student_id}", response_model=Student)
+@router.put("/{student_id}", response_model=Student)
 def put_student(student_id: int, student: StudentIn):
     try:
         with connect() as conn:

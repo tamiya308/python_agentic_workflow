@@ -1,18 +1,18 @@
 """Seed the student records database with sample students.
 
 Run from the project root:
-    .\\.venv\\Scripts\\python -m tools.seed_students
+    .\\.venv\\Scripts\\python -m src.migrations.seed_students
 Safe to re-run: students whose email already exists are skipped.
 """
 
-from tools.student_api import (
+from src.api.student_api import (
     COLUMNS,
     PLACEHOLDERS,
-    StudentIn,
     connect,
     init_db,
     to_params,
 )
+from src.models import StudentIn
 
 SAMPLE_STUDENTS = [
     StudentIn(
