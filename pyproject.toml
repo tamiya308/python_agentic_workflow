@@ -8,6 +8,16 @@ dependencies = [
     "uvicorn[standard]",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "httpx2",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tools"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
