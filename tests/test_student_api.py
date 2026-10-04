@@ -10,8 +10,8 @@ import sqlite3
 import pytest
 from fastapi.testclient import TestClient
 
-import src.api.student_api as api
-import src.migrations.seed_students as seed
+import src.seeds.seed_students as seed
+from src import db
 from src.main import app
 
 ADA = {
@@ -27,7 +27,7 @@ ADA = {
 @pytest.fixture(autouse=True)
 def temp_db(tmp_path, monkeypatch):
     db_path = tmp_path / "students.db"
-    monkeypatch.setattr(api, "DB_PATH", db_path)
+    monkeypatch.setattr(db, "DB_PATH", db_path)
     return db_path
 
 
@@ -176,10 +176,10 @@ def test_init_db_adds_course_name_to_old_database(temp_db):
         )
     conn.close()
 
-    api.init_db()
-    api.init_db()  # running twice must be safe
+    db.init_db()
+    db.init_db()  # running twice must be safe
 
-    with api.connect() as conn:
+    with db.connect() as conn:
         columns = [r["name"] for r in conn.execute("PRAGMA table_info(students)")]
         row = conn.execute("SELECT * FROM students").fetchone()
     assert "course_name" in columns
@@ -193,7 +193,7 @@ def test_init_db_adds_course_name_to_old_database(temp_db):
 def test_seed_inserts_samples_and_is_rerunnable(capsys):
     seed.main()
     seed.main()
-    with api.connect() as conn:
+    with db.connect() as conn:
         total = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     assert total == len(seed.SAMPLE_STUDENTS)
     assert "Inserted 0 student(s)" in capsys.readouterr().out

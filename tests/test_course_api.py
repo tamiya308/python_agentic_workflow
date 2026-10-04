@@ -3,14 +3,14 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api import student_api
+from src import db
 from src.main import app
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     # Startup still runs init_db, so keep it away from data/students.db.
-    monkeypatch.setattr(student_api, "DB_PATH", tmp_path / "students.db")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "students.db")
     with TestClient(app) as c:
         yield c
 

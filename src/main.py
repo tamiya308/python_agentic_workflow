@@ -9,12 +9,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from src.api import course_api, student_api
+from . import db
+from .api import course_api, student_api
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    student_api.init_db()
+    db.init_db()
     yield
 
 
