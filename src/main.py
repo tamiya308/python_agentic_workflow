@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from src.api import student_api
+from src.api import course_api, student_api
 
 
 @asynccontextmanager
@@ -20,3 +20,4 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="Student Records API", lifespan=lifespan)
 app.include_router(student_api.router)
+app.include_router(course_api.router)
