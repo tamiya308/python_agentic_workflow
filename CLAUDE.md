@@ -20,7 +20,7 @@ You're working inside the **WAT framework** (Workflows, Agents, Tools). This arc
 - Example (illustrative only; these files don't exist yet): If you need to pull data from a website, don't attempt it directly. Read `workflows/scrape_website.md`, figure out the required inputs, then execute `tools/scrape_single_site.py`
 
 **Layer 3: Tools (The Execution)**
-- Python scripts in `tools/` that do the work
+- Python & powershell scripts in `tools/` that do the work
 - API calls, data transformations, file operations, database queries
 - Credentials and API keys are stored in `.env`
 - These scripts are consistent, testable, and fast
@@ -92,6 +92,7 @@ Stay pragmatic. Stay reliable. Keep learning.
 ALLOWED directories (you may read, write, and list):
 - `src/*`
 - `tests/`
+- `tools/`
 - `workflows/`
 - `config/` (if present)
 - `.tmp/` (for generated data only)

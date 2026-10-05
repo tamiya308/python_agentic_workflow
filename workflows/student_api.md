@@ -39,6 +39,9 @@ None required. Student data is stored in `data/students.db` (SQLite). The folder
 - `tests/test_course_api.py`: checks each course endpoint returns an empty 200
 - `tools/RunUnitTests.ps1`: runs the full pytest suite with the project's `.venv`; run it from the project root
 - `tools/SeedData.ps1`: inserts the sample students into `data/students.db` with the project's `.venv`; run it from the project root
+- `tools/StartServer.ps1`: starts the API with uvicorn (auto-reload on code changes) using the project's `.venv`; run it from the project root
+- `tools/FormatPythonFile.ps1`: formats the Python code in `src/` and `tests/` with Ruff; run it from the project root
+- `tools/PreCommitCheck.ps1`: formats `src/` and `tests/` with Ruff, then runs the full pytest suite; run it before every commit
 
 ## Steps
 1. **One-time setup**, if `.venv/` is missing:
@@ -49,16 +52,13 @@ None required. Student data is stored in `data/students.db` (SQLite). The folder
    `[dev]` adds the test and formatting tools (pytest, httpx2, ruff).
    Install any new packages only with `.\.venv\Scripts\python -m pip install <pkg>`, and add them to `pyproject.toml`.
 2. **Seed sample data** (optional), from the project root: `.\tools\SeedData.ps1`
-   (it runs `.\.venv\Scripts\python -m src.seeds.seed_students`).
-3. **Start the server** from the project root:
-   `.\.venv\Scripts\python -m uvicorn src.main:app --reload`
+3. **Start the server**, from the project root: `.\tools\StartServer.ps1`
 4. **Use it.** Interactive docs are at http://127.0.0.1:8000/docs.
-5. **Run the tests** after every code change, from the project root: `.\tools\RunUnitTests.ps1`
-   (it runs `.\.venv\Scripts\python -m pytest`). All tests must pass before committing.
+5. **Run the tests** after every code change, from the project root: `.\tools\RunUnitTests.ps1`. All tests must pass before committing.
 
 ## Git commits
 Every time I ask for a series of instructions to be carried out, finish with a git commit:
-1. Run `ruff format src tests` and `.\.venv\Scripts\python -m pytest`. Don't commit if a test fails; fix it or report it first.
+1. Run `.\tools\PreCommitCheck.ps1` (formats with Ruff, then runs the tests). Don't commit if a test fails; fix it or report it first.
 2. Commit only project files (`src/`, `tests/`, `tools/`, `workflows/`, `pyproject.toml`, `.gitignore`, `CLAUDE.md`). Never commit `.env`, `credentials.json`, `token.json`, `data/*.db` or `.venv/`; `.gitignore` already excludes them.
 3. Make one commit per logical change, with a message that says what changed and why.
 
@@ -77,7 +77,7 @@ Fields: `first_name`, `last_name`, `email` (must be unique), `date_of_birth` (YY
 - Run every command from the project root. The `src.` module imports depend on it.
 - To reset the data, stop the server and delete `data/students.db`. It is recreated on the next start.
 - New columns: add them to `SCHEMA` and `COLUMNS` in `src/db.py` and to `StudentIn` in `src/models/student.py`, plus an `ALTER TABLE` check in `init_db()` so existing databases are upgraded on the next start without losing data.
-- Format code with `ruff format src tests` (Ruff is installed in `.venv`). Don't run `ruff format *`, which also reaches other directories.
+- Format code with `.\tools\FormatPythonFile.ps1`, which runs `ruff format src tests` (Ruff is installed in `.venv`). Don't run `ruff format *`, which also reaches other directories.
 - Tests use a temporary database for each test (pytest's `tmp_path`), so they never touch `data/students.db`.
 - New routers: create the module in `src/api/` with an `APIRouter(prefix=...)` and register it in `src/main.py` with `app.include_router(...)`.
 - Any test that uses `TestClient(app)` triggers startup, which runs `init_db()`. Point `db.DB_PATH` at `tmp_path` first so the real database isn't touched.
