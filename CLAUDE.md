@@ -92,7 +92,6 @@ Stay pragmatic. Stay reliable. Keep learning.
 ALLOWED directories (you may read, write, and list):
 - `src/*`
 - `tests/`
-- `tools/`
 - `workflows/`
 - `config/` (if present)
 - `.tmp/` (for generated data only)
