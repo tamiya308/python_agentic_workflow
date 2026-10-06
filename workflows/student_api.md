@@ -42,6 +42,7 @@ None required. Student data is stored in `data/students.db` (SQLite). The folder
 - `tests/test_course_api.py`: checks each course endpoint returns an empty 200
 - `tools/RunUnitTests.ps1`: runs the full pytest suite with the project's `.venv`; run it from the project root
 - `tools/SeedData.ps1`: inserts the sample students into `data/students.db` with the project's `.venv`; run it from the project root
+- `tools/DeleteDatabase.ps1`: deletes `data/students.db` (all students and courses) after asking you to type `yes`; `-Force` skips the prompt. The database is recreated empty on the next server start or seed
 - `tools/StartServer.ps1`: starts the API with uvicorn (auto-reload on code changes) using the project's `.venv`; run it from the project root
 - `tools/FormatPythonFile.ps1`: formats the Python code in `src/` and `tests/` with Ruff; run it from the project root
 - `tools/PreCommitCheck.ps1`: formats `src/` and `tests/` with Ruff, then runs the full pytest suite; run it before every commit
@@ -80,7 +81,7 @@ Course fields (`courses` table): `name` (required, unique), `description` (text,
 
 ## Edge cases and notes
 - Run every command from the project root. The `src.` module imports depend on it.
-- To reset the data, stop the server and delete `data/students.db`. It is recreated on the next start.
+- To reset the data, stop the server and run `.	ools\DeleteDatabase.ps1`. It fails while the server is running, because the server keeps the file open. The database is recreated on the next start; run `.	ools\SeedData.ps1` to add the sample students back.
 - Foreign keys: SQLite only enforces them when `PRAGMA foreign_keys = ON` is set on each connection. `connect()` does this, so always open connections through it.
 - Upgrading old databases: `init_db()` adds `course_id` and drops the old `course_name` column (needs SQLite 3.35+). Values in `course_name` are lost; they were free text and can't be mapped to course ids.
 - New columns: add them to `SCHEMA` and `COLUMNS` in `src/db.py` and to `StudentIn` in `src/models/student.py`, plus an `ALTER TABLE` check in `init_db()` so existing databases are upgraded on the next start without losing data.
