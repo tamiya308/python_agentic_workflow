@@ -11,7 +11,7 @@ class StudentIn(BaseModel):
     email: str = Field(pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
     date_of_birth: date | None = None
     grade: int | None = Field(default=None, ge=0)
-    course_name: str | None = None
+    course_id: int | None = None
 
 
 class Student(StudentIn):

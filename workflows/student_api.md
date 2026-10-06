@@ -24,6 +24,8 @@ Run the local REST API for creating, reading and updating student records, and s
 - Generate a [@course_api.py] file with functions that serve as endpoints for basic GET, POST, PUT and DELETE verbs. Create these functions but don't put anything in them (just return empty HTTP 200 responses). Also update the [@main.py] file to point HTTP requests with "course" in the path to this [@course_api.py] file
 - Move connect, init_db, DB_PATH and the schema into a db.py
 - Rename src/migrations to src/seeds (it holds seed data, not migrations)
+- Add a course model (src/models/course.py) and a courses table with basic fields; no course records are inserted
+- Replace students.course_name with course_id, a nullable foreign key to courses.id; seed students get a null course_id
 
 ## Inputs
 None required. Student data is stored in `data/students.db` (SQLite). The folder and table are created automatically.
@@ -31,7 +33,8 @@ None required. Student data is stored in `data/students.db` (SQLite). The folder
 ## Code layout
 - `src/main.py`: startup. Builds the FastAPI app, runs `db.init_db()` on startup, and routes `/students` and `/courses` to the API modules
 - `src/models/student.py`: Pydantic models (`StudentIn`, `Student`), re-exported from `src.models`
-- `src/db.py`: SQLite storage: `DB_PATH`, `SCHEMA`, `COLUMNS`, `connect()` and `init_db()` (creates the table and upgrades old databases)
+- `src/models/course.py`: Pydantic models (`CourseIn`, `Course`), re-exported from `src.models`
+- `src/db.py`: SQLite storage: `DB_PATH`, `COURSES_SCHEMA`, `SCHEMA`, `COLUMNS`, `connect()` (turns on foreign key checks) and `init_db()` (creates both tables and upgrades old databases)
 - `src/api/student_api.py`: student endpoints (an `APIRouter` with prefix `/students`) plus helpers that convert between `StudentIn`/`Student` and database rows
 - `src/api/course_api.py`: placeholder course endpoints (prefix `/courses`); each returns an empty 200
 - `src/seeds/seed_students.py`: inserts 9 sample students; safe to re-run (it skips existing emails)
@@ -67,15 +70,19 @@ Every time I ask for a series of instructions to be carried out, finish with a g
 |---|---|---|
 | GetAllStudents | `GET /students` | 200 with the list |
 | getStudent | `GET /students/{id}` | 200, or 404 if the id doesn't exist |
-| postStudent | `POST /students` | 201 with the new id; 409 on a duplicate email; 422 on invalid input |
-| putStudent | `PUT /students/{id}` | Replaces the whole record; 404 if missing, 409 on a duplicate email |
+| postStudent | `POST /students` | 201 with the new id; 409 on a duplicate email; 422 on invalid input or an unknown `course_id` |
+| putStudent | `PUT /students/{id}` | Replaces the whole record; 404 if missing, 409 on a duplicate email, 422 on an unknown `course_id` |
 | (courses, placeholder) | `GET /courses`, `POST /courses`, `PUT /courses/{id}`, `DELETE /courses/{id}` | Empty 200 for now |
 
-Fields: `first_name`, `last_name`, `email` (must be unique), `date_of_birth` (YYYY-MM-DD, optional), `grade` (integer, optional), `course_name` (text, optional).
+Fields: `first_name`, `last_name`, `email` (must be unique), `date_of_birth` (YYYY-MM-DD, optional), `grade` (integer, optional), `course_id` (optional; must be the `id` of an existing course).
+
+Course fields (`courses` table): `name` (required, unique), `description` (text, optional), `credits` (integer, optional). The table starts empty.
 
 ## Edge cases and notes
 - Run every command from the project root. The `src.` module imports depend on it.
 - To reset the data, stop the server and delete `data/students.db`. It is recreated on the next start.
+- Foreign keys: SQLite only enforces them when `PRAGMA foreign_keys = ON` is set on each connection. `connect()` does this, so always open connections through it.
+- Upgrading old databases: `init_db()` adds `course_id` and drops the old `course_name` column (needs SQLite 3.35+). Values in `course_name` are lost; they were free text and can't be mapped to course ids.
 - New columns: add them to `SCHEMA` and `COLUMNS` in `src/db.py` and to `StudentIn` in `src/models/student.py`, plus an `ALTER TABLE` check in `init_db()` so existing databases are upgraded on the next start without losing data.
 - Format code with `.\tools\FormatPythonFile.ps1`, which runs `ruff format src tests` (Ruff is installed in `.venv`). Don't run `ruff format *`, which also reaches other directories.
 - Tests use a temporary database for each test (pytest's `tmp_path`), so they never touch `data/students.db`.

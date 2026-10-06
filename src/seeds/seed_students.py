@@ -16,6 +16,7 @@ SAMPLE_STUDENTS = [
         email="alan.turing@example.com",
         date_of_birth="2009-06-23",
         grade=10,
+        course_id=None,
     ),
     StudentIn(
         first_name="Grace",
@@ -23,6 +24,7 @@ SAMPLE_STUDENTS = [
         email="grace.hopper@example.com",
         date_of_birth="2008-12-09",
         grade=11,
+        course_id=None,
     ),
     StudentIn(
         first_name="Katherine",
@@ -30,6 +32,7 @@ SAMPLE_STUDENTS = [
         email="katherine.johnson@example.com",
         date_of_birth="2010-08-26",
         grade=9,
+        course_id=None,
     ),
     StudentIn(
         first_name="Linus",
@@ -37,6 +40,7 @@ SAMPLE_STUDENTS = [
         email="linus.torvalds@example.com",
         date_of_birth="2009-12-28",
         grade=10,
+        course_id=None,
     ),
     StudentIn(
         first_name="Margaret",
@@ -44,6 +48,7 @@ SAMPLE_STUDENTS = [
         email="margaret.hamilton@example.com",
         date_of_birth="2008-08-17",
         grade=12,
+        course_id=None,
     ),
     StudentIn(
         first_name="Tim",
@@ -51,6 +56,7 @@ SAMPLE_STUDENTS = [
         email="tim.bernerslee@example.com",
         date_of_birth="2010-06-08",
         grade=9,
+        course_id=None,
     ),
     StudentIn(
         first_name="Barbara",
@@ -58,6 +64,7 @@ SAMPLE_STUDENTS = [
         email="barbara.liskov@example.com",
         date_of_birth="2009-11-07",
         grade=10,
+        course_id=None,
     ),
     StudentIn(
         first_name="Dennis",
@@ -65,6 +72,7 @@ SAMPLE_STUDENTS = [
         email="dennis.ritchie@example.com",
         date_of_birth="2008-09-09",
         grade=11,
+        course_id=None,
     ),
     StudentIn(
         first_name="Hedy",
@@ -72,6 +80,7 @@ SAMPLE_STUDENTS = [
         email="hedy.lamarr@example.com",
         date_of_birth="2008-11-09",
         grade=12,
+        course_id=None,
     ),
 ]
 

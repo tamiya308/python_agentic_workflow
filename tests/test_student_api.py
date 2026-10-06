@@ -20,7 +20,7 @@ ADA = {
     "email": "ada@example.com",
     "date_of_birth": "1815-12-10",
     "grade": 11,
-    "course_name": "Mathematics",
+    "course_id": None,
 }
 
 
@@ -35,6 +35,11 @@ def temp_db(tmp_path, monkeypatch):
 def client():
     with TestClient(app) as c:  # the context manager runs the lifespan (init_db)
         yield c
+
+
+def add_course(name="Mathematics"):
+    with db.connect() as conn:
+        return conn.execute("INSERT INTO courses (name) VALUES (?)", (name,)).lastrowid
 
 
 def create(client, **overrides):
@@ -87,19 +92,30 @@ def test_post_student_optional_fields_default_to_null(client):
         client,
         date_of_birth=None,
         grade=None,
-        course_name=None,
+        course_id=None,
         email="min@example.com",
     )
     assert created["date_of_birth"] is None
     assert created["grade"] is None
-    assert created["course_name"] is None
+    assert created["course_id"] is None
 
 
-def test_post_student_without_course_name(client):
-    payload = {k: v for k, v in ADA.items() if k != "course_name"}
+def test_post_student_without_course_id(client):
+    payload = {k: v for k, v in ADA.items() if k != "course_id"}
     response = client.post("/students", json=payload)
     assert response.status_code == 201
-    assert response.json()["course_name"] is None
+    assert response.json()["course_id"] is None
+
+
+def test_post_student_with_course(client):
+    course_id = add_course()
+    created = create(client, course_id=course_id)
+    assert created["course_id"] == course_id
+
+
+def test_post_student_unknown_course(client):
+    response = client.post("/students", json={**ADA, "course_id": 999})
+    assert response.status_code == 422
 
 
 def test_post_student_duplicate_email(client):
@@ -134,25 +150,32 @@ def test_post_student_missing_required_field(client):
 
 def test_put_student_replaces_record(client):
     created = create(client)
-    updated = {**ADA, "course_name": "Physics", "grade": 12}
+    physics = add_course("Physics")
+    updated = {**ADA, "course_id": physics, "grade": 12}
     response = client.put(f"/students/{created['id']}", json=updated)
     assert response.status_code == 200
     assert response.json() == {**updated, "id": created["id"]}
-    assert client.get(f"/students/{created['id']}").json()["course_name"] == "Physics"
+    assert client.get(f"/students/{created['id']}").json()["course_id"] == physics
 
 
 def test_put_student_omitted_optional_fields_become_null(client):
-    created = create(client)
+    created = create(client, course_id=add_course())
     payload = {k: ADA[k] for k in ("first_name", "last_name", "email")}
     response = client.put(f"/students/{created['id']}", json=payload)
     assert response.status_code == 200
-    assert response.json()["course_name"] is None
+    assert response.json()["course_id"] is None
     assert response.json()["grade"] is None
 
 
 def test_put_student_not_found(client):
     response = client.put("/students/999", json=ADA)
     assert response.status_code == 404
+
+
+def test_put_student_unknown_course(client):
+    created = create(client)
+    response = client.put(f"/students/{created['id']}", json={**ADA, "course_id": 999})
+    assert response.status_code == 422
 
 
 def test_put_student_duplicate_email(client):
@@ -165,7 +188,7 @@ def test_put_student_duplicate_email(client):
 # Database setup and migration
 
 
-def test_init_db_adds_course_name_to_old_database(temp_db):
+def test_init_db_upgrades_database_without_course_columns(temp_db):
     with sqlite3.connect(temp_db) as conn:
         conn.execute(
             "CREATE TABLE students (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT NOT NULL,"
@@ -182,9 +205,45 @@ def test_init_db_adds_course_name_to_old_database(temp_db):
     with db.connect() as conn:
         columns = [r["name"] for r in conn.execute("PRAGMA table_info(students)")]
         row = conn.execute("SELECT * FROM students").fetchone()
-    assert "course_name" in columns
+    assert "course_id" in columns
     assert row["email"] == "old@example.com"
-    assert row["course_name"] is None
+    assert row["course_id"] is None
+
+
+def test_init_db_replaces_course_name_with_course_id(temp_db):
+    with sqlite3.connect(temp_db) as conn:
+        conn.execute(
+            "CREATE TABLE students (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT NOT NULL,"
+            " last_name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, date_of_birth TEXT, grade INTEGER,"
+            " course_name TEXT)"
+        )
+        conn.execute(
+            "INSERT INTO students (first_name, last_name, email, course_name)"
+            " VALUES ('Old', 'Row', 'old@example.com', 'nothing')"
+        )
+    conn.close()
+
+    db.init_db()
+    db.init_db()  # running twice must be safe
+
+    with db.connect() as conn:
+        columns = [r["name"] for r in conn.execute("PRAGMA table_info(students)")]
+        fks = [dict(r) for r in conn.execute("PRAGMA foreign_key_list(students)")]
+        row = conn.execute("SELECT * FROM students").fetchone()
+    assert "course_name" not in columns
+    assert "course_id" in columns
+    assert fks[0]["table"] == "courses" and fks[0]["from"] == "course_id"
+    assert row["email"] == "old@example.com"
+    assert row["course_id"] is None
+
+
+def test_init_db_creates_empty_courses_table(temp_db):
+    db.init_db()
+    with db.connect() as conn:
+        columns = [r["name"] for r in conn.execute("PRAGMA table_info(courses)")]
+        total = conn.execute("SELECT COUNT(*) FROM courses").fetchone()[0]
+    assert columns == ["id", "name", "description", "credits"]
+    assert total == 0
 
 
 # Seed script

@@ -28,6 +28,17 @@ def fetch_student(conn: sqlite3.Connection, student_id: int) -> Student:
     return row_to_student(row)
 
 
+def integrity_error(student: StudentIn, error: sqlite3.IntegrityError) -> HTTPException:
+    if "FOREIGN KEY" in str(error):
+        return HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            f"Course {student.course_id} does not exist",
+        )
+    return HTTPException(
+        status.HTTP_409_CONFLICT, f"Email {student.email} already exists"
+    )
+
+
 router = APIRouter(prefix="/students", tags=["students"])
 
 
@@ -53,10 +64,8 @@ def post_student(student: StudentIn):
                 to_params(student),
             )
             return fetch_student(conn, cur.lastrowid)
-    except sqlite3.IntegrityError:
-        raise HTTPException(
-            status.HTTP_409_CONFLICT, f"Email {student.email} already exists"
-        )
+    except sqlite3.IntegrityError as error:
+        raise integrity_error(student, error)
 
 
 @router.put("/{student_id}", response_model=Student)
@@ -69,7 +78,5 @@ def put_student(student_id: int, student: StudentIn):
                 (*to_params(student), student_id),
             )
             return fetch_student(conn, student_id)
-    except sqlite3.IntegrityError:
-        raise HTTPException(
-            status.HTTP_409_CONFLICT, f"Email {student.email} already exists"
-        )
+    except sqlite3.IntegrityError as error:
+        raise integrity_error(student, error)
