@@ -67,6 +67,7 @@ access them directly
 
 **Directory layout:**
 ```
+.github/    * Git files
 .tmp/		# Temporary files (scraped data, intermediate exports). Regenerated as needed.
 tools/		# Python scripts for deterministic execution
 workflows/	# Markdown SOPs defining what to do and how

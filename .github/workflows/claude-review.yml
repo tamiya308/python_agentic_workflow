@@ -1,0 +1,37 @@
+name: Claude Code Review
+
+# Runs only when a PR is first opened (not on later pushes) to keep API costs down.
+# Requires the ANTHROPIC_API_KEY repo secret (set up via /install-github-app in Claude Code).
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so the agent can diff against the base branch
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Use the code-reviewer subagent to review this pull request.
+            There are no uncommitted changes in CI: review the diff between
+            origin/${{ github.base_ref }} and HEAD instead.
+
+            When the review is done, post the findings as a single PR comment
+            with `gh pr comment ${{ github.event.pull_request.number }} --body-file <file>`.
+          # Read-only git/gh commands for the reviewer, plus permission to post the comment.
+          claude_args: |
+            --allowedTools "Bash(git diff:*),Bash(git log:*),Bash(git status:*),Bash(git show:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
