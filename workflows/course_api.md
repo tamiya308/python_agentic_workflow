@@ -3,7 +3,7 @@
 
 ## Instructions
 - Create or update the courses & courseUnits end points & database structure. Update them with sample seed data when needed.
-- CReate or updatethe [@course_api.py] file with functions that serve as endpoints for basic GET, POST, PUT and DELETE verbs. Create these functions but don't put anything in them (just return empty HTTP 200 responses). Also update the [@main.py] file to point HTTP requests with "courses" in the path to this [@course_api.py] file
+- Create or updatethe [@course_api.py] file with functions that serve as endpoints for basic GET, POST, PUT and DELETE verbs. Also update the [@main.py] file to point HTTP requests with "courses" in the path to this [@course_api.py] file
 - Add a course model (src/models/course.py) and a courses table with basic fields
 
 ## Table structure

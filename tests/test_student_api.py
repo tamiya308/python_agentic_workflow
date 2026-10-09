@@ -256,3 +256,34 @@ def test_seed_inserts_samples_and_is_rerunnable(capsys):
         total = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
     assert total == len(seed.SAMPLE_STUDENTS)
     assert "Inserted 0 student(s)" in capsys.readouterr().out
+
+
+# Additional course-related coverage
+
+
+def test_put_student_assigns_existing_course(client):
+    created = create(client)
+    course_id = add_course("Physics")
+    response = client.put(
+        f"/students/{created['id']}", json={**ADA, "course_id": course_id}
+    )
+    assert response.status_code == 200
+    assert response.json()["course_id"] == course_id
+    assert client.get(f"/students/{created['id']}").json()["course_id"] == course_id
+
+
+def test_put_student_can_unassign_course(client):
+    course_id = add_course()
+    created = create(client, course_id=course_id)
+    response = client.put(f"/students/{created['id']}", json={**ADA, "course_id": None})
+    assert response.status_code == 200
+    assert response.json()["course_id"] is None
+
+
+def test_put_student_unknown_course_leaves_record_unchanged(client):
+    created = create(client)
+    response = client.put(
+        f"/students/{created['id']}", json={**ADA, "course_id": 999, "grade": 5}
+    )
+    assert response.status_code in (404, 409, 422)
+    assert client.get(f"/students/{created['id']}").json() == created
