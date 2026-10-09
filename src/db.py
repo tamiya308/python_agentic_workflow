@@ -27,6 +27,16 @@ CREATE TABLE IF NOT EXISTS students (
 )
 """
 
+COURSE_UNITS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS courseUnits (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL,
+    description TEXT,
+    courseId    INTEGER NOT NULL REFERENCES courses(id),
+    UNIQUE (courseId, name)
+)
+"""
+
 COLUMNS = ("firstName", "lastName", "email", "dateOfBirth", "grade", "courseId")
 PLACEHOLDERS = ", ".join("?" for _ in COLUMNS)
 
@@ -57,6 +67,7 @@ def init_db() -> None:
     with connect() as conn:
         conn.execute(COURSES_SCHEMA)
         conn.execute(SCHEMA)
+        conn.execute(COURSE_UNITS_SCHEMA)
         existing = {row["name"] for row in conn.execute("PRAGMA table_info(students)")}
         for old, new in RENAMED_COLUMNS.items():
             if old in existing:

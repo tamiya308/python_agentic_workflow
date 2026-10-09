@@ -24,7 +24,7 @@ Examples:
 - `/seed-course Chemistry, Atoms, bonding and reactions, 3` → all three
 
 ## 2. Make sure the database exists
-Run `.\.venv\Scripts\python -c "from src.db import init_db; init_db()"`. This creates the `courses` and `students` tables if they're missing, without deleting any rows.
+Run `.\.venv\Scripts\python -c "from src.db import init_db; init_db()"`. This creates the `courses`, `courseUnits` and `students` tables if they're missing, without deleting any rows.
 
 ## 3. Look at the existing courses
 ```powershell
@@ -77,6 +77,6 @@ Escape any double quotes or backslashes inside the values so the Python strings 
 Fetch the new row by its id. Confirm every field is populated and the course count went up by exactly one. Report the inserted course (id and all fields) back to me, and say which values came from my arguments and which you chose.
 
 ## Don'ts
-- Don't modify or delete existing courses or students.
+- Don't modify or delete existing courses, course units or students.
 - Don't insert more than one course.
 - Don't edit `src/seeds/seed_courses.py`; this is a one-off insert, not a change to the sample data.

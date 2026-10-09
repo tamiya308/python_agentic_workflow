@@ -84,6 +84,6 @@ def delete_course(course_id: int):
     except sqlite3.IntegrityError:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
-            f"Course {course_id} still has students enrolled",
+            f"Course {course_id} still has students or course units",
         )
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -5,7 +5,7 @@ description: Insert one unique dummy student, with every field filled (courseId 
 Add exactly one dummy student to `data/students.db`. Run every command from the project root with the project's `.venv`.
 
 ## 1. Make sure the database exists
-Run `.\.venv\Scripts\python -c "from src.db import init_db; init_db()"`. This creates the `courses` and `students` tables, or upgrades an older `students` table (renames the snake_case columns to camelCase, adds `courseId`, drops the old `course_name`), without deleting any rows.
+Run `.\.venv\Scripts\python -c "from src.db import init_db; init_db()"`. This creates the `courses`, `courseUnits` and `students` tables, or upgrades an older `students` table (renames the snake_case columns to camelCase, adds `courseId`, drops the old `course_name`), without deleting any rows.
 
 ## 2. Look at the existing students and courses
 List every current student and course so the new student can be checked against them:
