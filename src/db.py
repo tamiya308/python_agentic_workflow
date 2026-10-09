@@ -73,10 +73,10 @@ def init_db() -> None:
             if old in existing:
                 conn.execute(f"ALTER TABLE students RENAME COLUMN {old} TO {new}")
                 existing = (existing - {old}) | {new}
-        # Older databases have course_name (free text) instead of a course id.
+        # Older databases have courseName (free text) instead of a course id.
         if "courseId" not in existing:
             conn.execute(
                 "ALTER TABLE students ADD COLUMN courseId INTEGER REFERENCES courses(id)"
             )
-        if "course_name" in existing:
-            conn.execute("ALTER TABLE students DROP COLUMN course_name")
+        if "courseName" in existing:
+            conn.execute("ALTER TABLE students DROP COLUMN courseName")

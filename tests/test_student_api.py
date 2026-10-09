@@ -210,15 +210,15 @@ def test_init_db_upgrades_database_without_course_columns(temp_db):
     assert row["courseId"] is None
 
 
-def test_init_db_replaces_course_name_with_course_id(temp_db):
+def test_init_db_replaces_courseName_with_course_id(temp_db):
     with sqlite3.connect(temp_db) as conn:
         conn.execute(
             "CREATE TABLE students (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT NOT NULL,"
             " last_name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, date_of_birth TEXT, grade INTEGER,"
-            " course_name TEXT)"
+            " courseName TEXT)"
         )
         conn.execute(
-            "INSERT INTO students (first_name, last_name, email, course_name)"
+            "INSERT INTO students (first_name, last_name, email, courseName)"
             " VALUES ('Old', 'Row', 'old@example.com', 'nothing')"
         )
     conn.close()
@@ -230,7 +230,7 @@ def test_init_db_replaces_course_name_with_course_id(temp_db):
         columns = [r["name"] for r in conn.execute("PRAGMA table_info(students)")]
         fks = [dict(r) for r in conn.execute("PRAGMA foreign_key_list(students)")]
         row = conn.execute("SELECT * FROM students").fetchone()
-    assert "course_name" not in columns
+    assert "courseName" not in columns
     assert "courseId" in columns
     assert fks[0]["table"] == "courses" and fks[0]["from"] == "courseId"
     assert row["email"] == "old@example.com"
