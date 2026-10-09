@@ -137,6 +137,44 @@ def test_put_course_duplicate_name(client):
     assert response.status_code == 409
 
 
+@pytest.mark.parametrize(
+    "field, value", [("name", ""), ("credits", -1), ("credits", "many")]
+)
+def test_put_course_invalid_input(client, field, value):
+    created = create(client)
+    response = client.put(f"/courses/{created['id']}", json={**MATH, field: value})
+    assert response.status_code == 422
+    assert client.get(f"/courses/{created['id']}").json() == created
+
+
+def test_put_course_keeping_own_name_succeeds(client):
+    created = create(client)
+    response = client.put(f"/courses/{created['id']}", json={**MATH, "credits": 5})
+    assert response.status_code == 200
+    assert response.json()["credits"] == 5
+
+
+def test_put_course_duplicate_name_leaves_record_unchanged(client):
+    create(client)
+    other = create(client, name="Physics")
+    client.put(f"/courses/{other['id']}", json=MATH)
+    assert client.get(f"/courses/{other['id']}").json() == other
+
+
+def test_post_course_zero_credits_is_allowed(client):
+    response = client.post("/courses", json={**MATH, "credits": 0})
+    assert response.status_code == 201
+    assert response.json()["credits"] == 0
+
+
+def test_delete_course_succeeds_after_students_unassigned(client):
+    created = create(client)
+    enroll_student(created["id"])
+    with db.connect() as conn:
+        conn.execute("UPDATE students SET course_id = NULL")
+    assert client.delete(f"/courses/{created['id']}").status_code == 204
+
+
 # deleteCourse
 
 

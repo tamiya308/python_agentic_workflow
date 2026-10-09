@@ -287,3 +287,54 @@ def test_put_student_unknown_course_leaves_record_unchanged(client):
     )
     assert response.status_code in (404, 409, 422)
     assert client.get(f"/students/{created['id']}").json() == created
+
+
+# Additional coverage for the endpoint table
+
+PUT_INVALID = [
+    ("email", "not-an-email"),
+    ("first_name", ""),
+    ("last_name", ""),
+    ("grade", -1),
+    ("date_of_birth", "10/12/1815"),
+]
+
+
+@pytest.mark.parametrize("field, value", PUT_INVALID)
+def test_put_student_invalid_input(client, field, value):
+    created = create(client)
+    response = client.put(f"/students/{created['id']}", json={**ADA, field: value})
+    assert response.status_code == 422
+    assert client.get(f"/students/{created['id']}").json() == created
+
+
+def test_put_student_missing_required_field(client):
+    created = create(client)
+    payload = {k: v for k, v in ADA.items() if k != "last_name"}
+    response = client.put(f"/students/{created['id']}", json=payload)
+    assert response.status_code == 422
+
+
+def test_put_student_keeping_own_email_succeeds(client):
+    created = create(client)
+    response = client.put(f"/students/{created['id']}", json={**ADA, "grade": 12})
+    assert response.status_code == 200
+    assert response.json()["grade"] == 12
+
+
+def test_put_student_duplicate_email_leaves_record_unchanged(client):
+    create(client)
+    other = create(client, email="grace@example.com")
+    client.put(f"/students/{other['id']}", json=ADA)
+    assert client.get(f"/students/{other['id']}").json() == other
+
+
+def test_post_student_duplicate_email_does_not_add_row(client):
+    create(client)
+    client.post("/students", json=ADA)
+    assert len(client.get("/students").json()) == 1
+
+
+def test_post_student_unknown_course_does_not_add_row(client):
+    client.post("/students", json={**ADA, "course_id": 999})
+    assert client.get("/students").json() == []
