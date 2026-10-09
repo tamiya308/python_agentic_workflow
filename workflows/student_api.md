@@ -25,15 +25,16 @@ Run the local REST API for creating, reading and updating student records, and s
 - Move connect, init_db, DB_PATH and the schema into a db.py
 - Rename src/migrations to src/seeds (it holds seed data, not migrations)
 - Replace students.course_name with course_id, a nullable foreign key to courses.id; seed students get a null course_id
+- Rename all fields to camelCase (firstName, lastName, dateOfBirth, courseId) in the database, models and JSON. Python functions and variables stay snake_case. init_db() renames the columns in existing databases and keeps their data
 
 ## Endpoints
 | Name | Request | Responses |
 |---|---|---|
 | GetAllStudents | `GET /students` | 200 with the list |
 | getStudent | `GET /students/{id}` | 200, or 404 if the id doesn't exist |
-| postStudent | `POST /students` | 201 with the new id; 409 on a duplicate email; 422 on invalid input or an unknown `course_id` |
-| putStudent | `PUT /students/{id}` | Replaces the whole record; 404 if missing, 409 on a duplicate email, 422 on an unknown `course_id` |
+| postStudent | `POST /students` | 201 with the new id; 409 on a duplicate email; 422 on invalid input or an unknown `courseId` |
+| putStudent | `PUT /students/{id}` | Replaces the whole record; 404 if missing, 409 on a duplicate email, 422 on an unknown `courseId` |
 | (courses, placeholder) | `GET /courses`, `POST /courses`, `PUT /courses/{id}`, `DELETE /courses/{id}` | Empty 200 for now |
 
-Fields: `first_name`, `last_name`, `email` (must be unique), `date_of_birth` (YYYY-MM-DD, optional), `grade` (integer, optional), `course_id` (optional; must be the `id` of an existing course).
+Fields: `firstName`, `lastName`, `email` (must be unique), `dateOfBirth` (YYYY-MM-DD, optional), `grade` (integer, optional), `courseId` (optional; must be the `id` of an existing course).
 

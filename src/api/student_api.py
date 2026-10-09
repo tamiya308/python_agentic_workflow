@@ -14,8 +14,8 @@ def row_to_student(row: sqlite3.Row) -> Student:
 
 def to_params(student: StudentIn) -> tuple:
     data = student.model_dump()
-    if data["date_of_birth"] is not None:
-        data["date_of_birth"] = data["date_of_birth"].isoformat()
+    if data["dateOfBirth"] is not None:
+        data["dateOfBirth"] = data["dateOfBirth"].isoformat()
     return tuple(data[c] for c in COLUMNS)
 
 
@@ -32,7 +32,7 @@ def integrity_error(student: StudentIn, error: sqlite3.IntegrityError) -> HTTPEx
     if "FOREIGN KEY" in str(error):
         return HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
-            f"Course {student.course_id} does not exist",
+            f"Course {student.courseId} does not exist",
         )
     return HTTPException(
         status.HTTP_409_CONFLICT, f"Email {student.email} already exists"

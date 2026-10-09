@@ -37,7 +37,7 @@ def create(client, **overrides):
 def enroll_student(course_id):
     with db.connect() as conn:
         conn.execute(
-            "INSERT INTO students (first_name, last_name, email, course_id) VALUES (?, ?, ?, ?)",
+            "INSERT INTO students (firstName, lastName, email, courseId) VALUES (?, ?, ?, ?)",
             ("Ada", "Lovelace", "ada@example.com", course_id),
         )
 
@@ -171,7 +171,7 @@ def test_delete_course_succeeds_after_students_unassigned(client):
     created = create(client)
     enroll_student(created["id"])
     with db.connect() as conn:
-        conn.execute("UPDATE students SET course_id = NULL")
+        conn.execute("UPDATE students SET courseId = NULL")
     assert client.delete(f"/courses/{created['id']}").status_code == 204
 
 

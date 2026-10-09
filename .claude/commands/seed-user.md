@@ -1,11 +1,11 @@
 ---
-description: Insert one unique dummy student, with every field filled (course_id when a course exists), into data/students.db
+description: Insert one unique dummy student, with every field filled (courseId when a course exists), into data/students.db
 ---
 
 Add exactly one dummy student to `data/students.db`. Run every command from the project root with the project's `.venv`.
 
 ## 1. Make sure the database exists
-Run `.\.venv\Scripts\python -c "from src.db import init_db; init_db()"`. This creates the `courses` and `students` tables, or upgrades an older `students` table (adds `course_id`, drops the old `course_name`), without deleting any rows.
+Run `.\.venv\Scripts\python -c "from src.db import init_db; init_db()"`. This creates the `courses` and `students` tables, or upgrades an older `students` table (renames the snake_case columns to camelCase, adds `courseId`, drops the old `course_name`), without deleting any rows.
 
 ## 2. Look at the existing students and courses
 List every current student and course so the new student can be checked against them:
@@ -22,19 +22,19 @@ with connect() as conn:
 ```
 
 ## 3. Choose the new student's values
-Fill in **every** field; none may be null or empty, except `course_id` when there are no courses:
+Fill in **every** field; none may be null or empty, except `courseId` when there are no courses:
 
 | Field | Rule |
 |---|---|
-| `first_name` | Non-empty text |
-| `last_name` | Non-empty text |
+| `firstName` | Non-empty text |
+| `lastName` | Non-empty text |
 | `email` | Valid format (`name@domain.tld`); must not match any existing email (the column is `UNIQUE`) |
-| `date_of_birth` | `YYYY-MM-DD`, a real date in the past |
+| `dateOfBirth` | `YYYY-MM-DD`, a real date in the past |
 | `grade` | Integer, 0 or higher |
-| `course_id` | The `id` of an existing row in `courses` (it is a foreign key to `courses.id`). If the `courses` table is empty, use `None`. Never make up an id, and don't insert a course to have one to point to |
+| `courseId` | The `id` of an existing row in `courses` (it is a foreign key to `courses.id`). If the `courses` table is empty, use `None`. Never make up an id, and don't insert a course to have one to point to |
 
 The record must be unique from every existing one:
-- The `first_name` + `last_name` pair must not already exist.
+- The `firstName` + `lastName` pair must not already exist.
 - The `email` must not already exist (compare case-insensitively).
 - The whole set of values must not repeat an existing row.
 
@@ -50,12 +50,12 @@ from src.db import COLUMNS, PLACEHOLDERS, connect
 from src.models import StudentIn
 
 student = StudentIn(
-    first_name="<first>",
-    last_name="<last>",
+    firstName="<first>",
+    lastName="<last>",
     email="<email>",
-    date_of_birth="<YYYY-MM-DD>",
+    dateOfBirth="<YYYY-MM-DD>",
     grade=<grade>,
-    course_id=<course_id or None>,
+    courseId=<courseId or None>,
 )
 with connect() as conn:
     cur = conn.execute(
@@ -66,10 +66,10 @@ with connect() as conn:
 '@ | .\.venv\Scripts\python -
 ```
 
-Use a plain `INSERT` (not `INSERT OR IGNORE`) so a duplicate email fails loudly. If it fails with `UNIQUE constraint failed`, pick a different email and retry. If it fails with `FOREIGN KEY constraint failed`, the `course_id` doesn't exist in `courses`: pick one from the list in step 2, or use `None`. If `StudentIn` raises a validation error, fix the offending value.
+Use a plain `INSERT` (not `INSERT OR IGNORE`) so a duplicate email fails loudly. If it fails with `UNIQUE constraint failed`, pick a different email and retry. If it fails with `FOREIGN KEY constraint failed`, the `courseId` doesn't exist in `courses`: pick one from the list in step 2, or use `None`. If `StudentIn` raises a validation error, fix the offending value.
 
 ## 5. Verify
-Fetch the new row by its email and confirm that every field is populated (`course_id` may be null only when there are no courses) and that the total count went up by exactly one. Report the inserted record (id and all fields) back to me.
+Fetch the new row by its email and confirm that every field is populated (`courseId` may be null only when there are no courses) and that the total count went up by exactly one. Report the inserted record (id and all fields) back to me.
 
 ## Don'ts
 - Don't modify or delete existing students.

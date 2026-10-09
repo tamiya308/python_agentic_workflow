@@ -18,17 +18,25 @@ CREATE TABLE IF NOT EXISTS courses (
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    first_name    TEXT NOT NULL,
-    last_name     TEXT NOT NULL,
+    firstName     TEXT NOT NULL,
+    lastName      TEXT NOT NULL,
     email         TEXT NOT NULL UNIQUE,
-    date_of_birth TEXT,
+    dateOfBirth   TEXT,
     grade         INTEGER,
-    course_id     INTEGER REFERENCES courses(id)
+    courseId      INTEGER REFERENCES courses(id)
 )
 """
 
-COLUMNS = ("first_name", "last_name", "email", "date_of_birth", "grade", "course_id")
+COLUMNS = ("firstName", "lastName", "email", "dateOfBirth", "grade", "courseId")
 PLACEHOLDERS = ", ".join("?" for _ in COLUMNS)
+
+# Older databases used snake_case column names.
+RENAMED_COLUMNS = {
+    "first_name": "firstName",
+    "last_name": "lastName",
+    "date_of_birth": "dateOfBirth",
+    "course_id": "courseId",
+}
 
 
 @contextmanager
@@ -49,11 +57,15 @@ def init_db() -> None:
     with connect() as conn:
         conn.execute(COURSES_SCHEMA)
         conn.execute(SCHEMA)
-        # Older databases have course_name (free text) instead of course_id.
         existing = {row["name"] for row in conn.execute("PRAGMA table_info(students)")}
-        if "course_id" not in existing:
+        for old, new in RENAMED_COLUMNS.items():
+            if old in existing:
+                conn.execute(f"ALTER TABLE students RENAME COLUMN {old} TO {new}")
+                existing = (existing - {old}) | {new}
+        # Older databases have course_name (free text) instead of a course id.
+        if "courseId" not in existing:
             conn.execute(
-                "ALTER TABLE students ADD COLUMN course_id INTEGER REFERENCES courses(id)"
+                "ALTER TABLE students ADD COLUMN courseId INTEGER REFERENCES courses(id)"
             )
         if "course_name" in existing:
             conn.execute("ALTER TABLE students DROP COLUMN course_name")
