@@ -12,8 +12,8 @@ Run the local REST API for creating, reading and updating student records, and s
 - 9 sample students added to the database
 - Install the Ruff extension code formatter 
 - Add a rule in the .claude/settings.local.json file to permit "running of Ruff formater without asking for permission"
-- Add a new property couseName into the student model. Also add this to the sql lite database 
-- Set course_name to "nothing" for the existing students. course_name stays optional, so new students don't need one
+- Add a new property courseName into the student model. Also add this to the sql lite database 
+- Set courseName to "nothing" for the existing students. courseName stays optional, so new students don't need one
 - Write automated unit tests for the project using a popular Python testing framework (pytest)
 - Make git commits every time a series of instructions is carried out (see "Git commits" below)
 - Restructure: Move all the classes into a "projectRootDir\src\models" folder.
@@ -24,7 +24,7 @@ Run the local REST API for creating, reading and updating student records, and s
 - Move the [@seed_students.py] file into the "projectRootDir\src\migrations" directory
 - Move connect, init_db, DB_PATH and the schema into a db.py
 - Rename src/migrations to src/seeds (it holds seed data, not migrations)
-- Replace students.course_name with course_id, a nullable foreign key to courses.id; seed students get a null course_id
+- Replace students.courseName with courseId, a nullable foreign key to courses.id; seed students get a null courseId
 - Rename all fields to camelCase (firstName, lastName, dateOfBirth, courseId) in the database, models and JSON. Python functions and variables stay snake_case. init_db() renames the columns in existing databases and keeps their data
 
 ## Endpoints
